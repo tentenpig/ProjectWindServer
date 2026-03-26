@@ -8,9 +8,16 @@ namespace ProjectWindServer.Game;
 public class PlayerSession
 {
     public int PlayerId { get; set; }
+    public int AccountId { get; set; }
     public string Name { get; set; } = "";
     public string MapId { get; set; } = "town_01";
     public Vec2Int Position { get; set; }
 
-    // TODO: 네트워크 연결 참조 추가
+    /// <summary>
+    /// 마지막 체크포인트 이후 변경이 있었는지
+    /// </summary>
+    public bool IsDirty { get; set; }
+
+    public void MarkDirty() => IsDirty = true;
+    public void ClearDirty() => IsDirty = false;
 }

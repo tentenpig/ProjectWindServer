@@ -1,4 +1,5 @@
 using System.Text.Json;
+using ProjectWindServer.DB;
 using ProjectWindServer.Game;
 using Shared.Protocol;
 
@@ -11,11 +12,15 @@ namespace ProjectWindServer.Net;
 public class PacketHandler
 {
     private readonly GameManager _gameManager;
+    private readonly AccountRepository _accountRepo;
+    private readonly CheckpointManager _checkpointManager;
     private readonly Dictionary<int, PlayerSession> _sessionMap = new(); // sessionId → PlayerSession
 
-    public PacketHandler(GameManager gameManager)
+    public PacketHandler(GameManager gameManager, AccountRepository accountRepo, CheckpointManager checkpointManager)
     {
         _gameManager = gameManager;
+        _accountRepo = accountRepo;
+        _checkpointManager = checkpointManager;
     }
 
     public void RegisterSession(ClientSession client)
@@ -43,11 +48,15 @@ public class PacketHandler
         }
     }
 
-    private void HandleLogin(ClientSession client, C_Login packet)
+    private async void HandleLogin(ClientSession client, C_Login packet)
     {
         Console.WriteLine($"[PacketHandler] Login request: {packet.AccountName}");
 
-        var playerSession = _gameManager.CreateSession(packet.AccountName, "town_01");
+        var account = await _accountRepo.GetOrCreateAccountAsync(packet.AccountName);
+
+        var playerSession = _gameManager.CreateSession(packet.AccountName, account.MapId);
+        playerSession.AccountId = account.Id;
+        playerSession.Position = new Shared.Models.Vec2Int(account.PosX, account.PosY);
         _sessionMap[client.SessionId] = playerSession;
 
         client.Send((ushort)PacketType.S_Login, new S_Login
@@ -73,19 +82,24 @@ public class PacketHandler
         if (room.TryMove(playerSession.PlayerId, packet.Position))
         {
             playerSession.Position = packet.Position;
+            playerSession.MarkDirty();
 
             // TODO: 같은 방의 다른 플레이어들에게 이동 브로드캐스트
         }
     }
 
-    private void HandleDisconnect(ClientSession client)
+    private async void HandleDisconnect(ClientSession client)
     {
         Console.WriteLine($"[PacketHandler] Client disconnected: Session {client.SessionId}");
 
         if (_sessionMap.TryGetValue(client.SessionId, out var playerSession))
         {
+            // 강제 저장 후 퇴장
+            await _checkpointManager.ForceSaveAsync(playerSession);
+
             var room = _gameManager.GetRoom(playerSession.MapId);
             room?.Leave(playerSession);
+            _gameManager.RemoveSession(playerSession.PlayerId);
             _sessionMap.Remove(client.SessionId);
         }
     }

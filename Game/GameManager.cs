@@ -9,6 +9,7 @@ namespace ProjectWindServer.Game;
 public class GameManager
 {
     private readonly Dictionary<string, GameRoom> _rooms = new();
+    private readonly Dictionary<int, PlayerSession> _allSessions = new();
     private int _nextPlayerId = 1;
 
     public void LoadMaps(IEnumerable<MapData> maps)
@@ -41,6 +42,14 @@ public class GameManager
             room.Enter(session);
         }
 
+        _allSessions[session.PlayerId] = session;
         return session;
     }
+
+    public void RemoveSession(int playerId)
+    {
+        _allSessions.Remove(playerId);
+    }
+
+    public IReadOnlyCollection<PlayerSession> GetAllSessions() => _allSessions.Values;
 }
