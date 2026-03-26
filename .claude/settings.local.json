@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//d/Workbench/ToyProject/ProjectWind/Shared/**)",
+      "Read(//d/Workbench/ToyProject/ProjectWind/**)",
+      "Bash(ls \"D:/Workbench/ToyProject/ProjectWind/ProjectWindServer/\"*.sln)",
+      "Bash(dotnet build:*)"
+    ]
+  }
+}
