@@ -4,13 +4,13 @@ namespace ProjectWindServer.Game;
 
 /// <summary>
 /// 서버 전체 게임 상태를 관리
-/// 모든 GameRoom과 PlayerSession을 총괄
+/// 모든 GameRoom과 Player을 총괄
 /// </summary>
 public class GameManager
 {
     private readonly Dictionary<string, GameRoom> _rooms = new();
-    private readonly Dictionary<int, PlayerSession> _allSessions = new();
-    private int _nextPlayerId = 1;
+    private readonly Dictionary<int, Player> _allSessions = new();
+    private int _nextEntityId = 1;
 
     public void LoadMaps(IEnumerable<MapData> maps)
     {
@@ -26,11 +26,11 @@ public class GameManager
         return _rooms.GetValueOrDefault(mapId);
     }
 
-    public PlayerSession CreateSession(string name, string startMapId)
+    public Player CreateSession(string name, string startMapId)
     {
-        var session = new PlayerSession
+        var session = new Player
         {
-            PlayerId = _nextPlayerId++,
+            Id = _nextEntityId++,
             Name = name,
             MapId = startMapId
         };
@@ -42,7 +42,7 @@ public class GameManager
             room.Enter(session);
         }
 
-        _allSessions[session.PlayerId] = session;
+        _allSessions[session.Id] = session;
         return session;
     }
 
@@ -51,5 +51,5 @@ public class GameManager
         _allSessions.Remove(playerId);
     }
 
-    public IReadOnlyCollection<PlayerSession> GetAllSessions() => _allSessions.Values;
+    public IReadOnlyCollection<Player> GetAllSessions() => _allSessions.Values;
 }

@@ -14,7 +14,7 @@ public class PacketHandler
     private readonly GameManager _gameManager;
     private readonly AccountRepository _accountRepo;
     private readonly CheckpointManager _checkpointManager;
-    private readonly Dictionary<int, PlayerSession> _sessionMap = new(); // sessionId → PlayerSession
+    private readonly Dictionary<int, Player> _sessionMap = new(); // sessionId → Player
 
     public PacketHandler(GameManager gameManager, AccountRepository accountRepo, CheckpointManager checkpointManager)
     {
@@ -74,7 +74,7 @@ public class PacketHandler
         client.Send((ushort)PacketType.S_Login, new S_Login
         {
             Success = true,
-            PlayerId = playerSession.PlayerId,
+            PlayerId = playerSession.Id,
             MapId = playerSession.MapId,
             Position = playerSession.Position
         });
@@ -91,7 +91,7 @@ public class PacketHandler
         var room = _gameManager.GetRoom(playerSession.MapId);
         if (room == null) return;
 
-        if (room.TryMove(playerSession.PlayerId, packet.Position))
+        if (room.TryMove(playerSession.Id, packet.Position))
         {
             playerSession.Position = packet.Position;
             playerSession.MarkDirty();
@@ -111,7 +111,7 @@ public class PacketHandler
 
             var room = _gameManager.GetRoom(playerSession.MapId);
             room?.Leave(playerSession);
-            _gameManager.RemoveSession(playerSession.PlayerId);
+            _gameManager.RemoveSession(playerSession.Id);
             _sessionMap.Remove(client.SessionId);
         }
     }

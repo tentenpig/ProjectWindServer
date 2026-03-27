@@ -60,13 +60,13 @@ public class CheckpointManager
     /// <summary>
     /// 특정 플레이어 강제 저장
     /// </summary>
-    public async Task ForceSaveAsync(PlayerSession session)
+    public async Task ForceSaveAsync(Player session)
     {
         await _accountRepo.SavePositionAsync(
             session.AccountId, session.MapId,
             session.Position.X, session.Position.Y);
         session.ClearDirty();
-        Console.WriteLine($"[Checkpoint] Force saved player {session.PlayerId}");
+        Console.WriteLine($"[Checkpoint] Force saved player {session.Id}");
     }
 
     public void Stop() => _cts.Cancel();
