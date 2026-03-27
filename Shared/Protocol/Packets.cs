@@ -9,6 +9,7 @@ namespace Shared.Protocol;
 public class C_Login
 {
     public string AccountName { get; set; } = "";
+    public string Password { get; set; } = "";
 }
 
 public class C_Move
@@ -24,6 +25,7 @@ public class C_Move
 public class S_Login
 {
     public bool Success { get; set; }
+    public string Message { get; set; } = "";
     public int PlayerId { get; set; }
     public string MapId { get; set; } = "";
     public Vec2Int Position { get; set; }

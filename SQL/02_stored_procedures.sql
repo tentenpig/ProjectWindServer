@@ -8,7 +8,8 @@ DROP PROCEDURE IF EXISTS sp_get_or_create_account;
 
 DELIMITER //
 CREATE PROCEDURE sp_get_or_create_account(
-    IN p_account_name VARCHAR(50)
+    IN p_account_name  VARCHAR(50),
+    IN p_password_hash VARCHAR(60)
 )
 BEGIN
     DECLARE v_id INT;
@@ -18,8 +19,8 @@ BEGIN
     WHERE account_name = p_account_name;
 
     IF v_id IS NULL THEN
-        INSERT INTO accounts (account_name, player_name)
-        VALUES (p_account_name, p_account_name);
+        INSERT INTO accounts (account_name, password_hash, player_name)
+        VALUES (p_account_name, p_password_hash, p_account_name);
 
         SET v_id = LAST_INSERT_ID();
     ELSE

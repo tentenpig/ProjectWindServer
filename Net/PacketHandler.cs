@@ -52,7 +52,19 @@ public class PacketHandler
     {
         Console.WriteLine($"[PacketHandler] Login request: {packet.AccountName}");
 
-        var account = await _accountRepo.GetOrCreateAccountAsync(packet.AccountName);
+        var passwordHash = BCrypt.Net.BCrypt.HashPassword(packet.Password);
+        var account = await _accountRepo.GetOrCreateAccountAsync(packet.AccountName, passwordHash);
+
+        // 비밀번호 검증 (기존 계정인 경우 저장된 해시와 비교)
+        if (!BCrypt.Net.BCrypt.Verify(packet.Password, account.PasswordHash))
+        {
+            client.Send((ushort)PacketType.S_Login, new S_Login
+            {
+                Success = false,
+                Message = "비밀번호가 일치하지 않습니다."
+            });
+            return;
+        }
 
         var playerSession = _gameManager.CreateSession(packet.AccountName, account.MapId);
         playerSession.AccountId = account.Id;
